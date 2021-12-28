@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "em4es",
+  "version": "${version}",
+
+  "name": "EM4ES: ExplorerMapForEveryStructure",
+  "description": "Serverside mod to add 'explorer maps' for each structure in the registry, bought from wandering traders",
+  "authors": [
+    "Me!"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "MIT",
+  "icon": "assets/em4es/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ace.actually.EM4ES.EM4ES"
+    ]
+  },
+  "mixins": [
+    "em4es.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.18.x",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

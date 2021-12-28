@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ace.actually.EM4ES.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "WanderingMixin"
+  ],
+
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
