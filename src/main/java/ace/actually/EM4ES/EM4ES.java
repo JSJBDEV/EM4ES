@@ -1,23 +1,11 @@
 package ace.actually.EM4ES;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.*;
-import net.minecraft.item.map.MapIcon;
-import net.minecraft.item.map.MapState;
-import net.minecraft.loot.context.LootContext;
-import net.minecraft.loot.entry.ItemEntry;
-import net.minecraft.loot.entry.LeafEntry;
-import net.minecraft.loot.function.ExplorationMapLootFunction;
-import net.minecraft.loot.function.LootFunction;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Style;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
@@ -30,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 public class EM4ES implements ModInitializer {
@@ -55,17 +42,15 @@ public class EM4ES implements ModInitializer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		LOGGER.info("Hello Fabric world!");
 	}
 
 
 	public static ItemStack makeRandomMap(ServerWorld world,BlockPos from)
 	{
-
-		StructureFeature sf = Registry.STRUCTURE_FEATURE.get(Identifier.tryParse(VALID_IDS.get(world.random.nextInt(VALID_IDS.size()))));
+		StructureFeature<?> sf = Registry.STRUCTURE_FEATURE.get(Identifier.tryParse(VALID_IDS.get(world.random.nextInt(VALID_IDS.size()))));
 
 		BlockPos pos = world.locateStructure(sf,from,1000,false);
-		while(pos==null)
+		while(pos == null)
 		{
 			sf = Registry.STRUCTURE_FEATURE.get(Identifier.tryParse(VALID_IDS.get(world.random.nextInt(VALID_IDS.size()))));
 			pos = world.locateStructure(sf,from,1000,false);
@@ -74,7 +59,7 @@ public class EM4ES implements ModInitializer {
 		FilledMapItem.fillExplorationMap(world, itemStack);
 		addDecorationsNbt(itemStack, pos, "+", sf.hashCode());
 
-		itemStack.setCustomName(new LiteralText(WordUtils.capitalizeFully(sf.getName()).replace("_"," ") +" Map"));
+		itemStack.setCustomName(new LiteralText(formatName(sf.getName()) +" Map"));
 		return itemStack;
 	}
 
@@ -102,5 +87,13 @@ public class EM4ES implements ModInitializer {
 		Random random = new Random(randomIn);
 		nbtCompound2.putInt("MapColor", color(random.nextInt(255),random.nextInt(255),random.nextInt(255)));
 
+	}
+
+	private static String formatName(String name) {
+		String[] split = name.split(":");
+		if (split.length > 1) name = split[1]; 
+		name = name.replaceAll("_", " ");
+		name = WordUtils.capitalizeFully(name);
+		return name;
 	}
 }
