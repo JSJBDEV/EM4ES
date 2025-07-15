@@ -6,21 +6,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.tag.TagKey;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.gen.feature.ConfiguredFeatures;
-import net.minecraft.world.gen.feature.ConfiguredStructureFeature;
-import net.minecraft.world.gen.feature.ConfiguredStructureFeatures;
 import net.minecraft.world.gen.feature.StructureFeature;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -39,16 +34,16 @@ public class EM4ES implements ModInitializer {
 
     public static Future<ItemStack> makeRandomMap(ServerWorld world, BlockPos from) {
         return em4esExecutor.submit(() -> {
-            Random random = new Random();
-            TagKey<ConfiguredStructureFeature<?,?>> sf = TagKey.of(Registry.CONFIGURED_STRUCTURE_FEATURE_KEY,Identifier.tryParse(VALID_IDS.get(random.nextInt(VALID_IDS.size()))));
-
+            StructureFeature<?> sf = Registry.STRUCTURE_FEATURE.get(Identifier.tryParse(VALID_IDS.get(world.random.nextInt(VALID_IDS.size()))));
+            LOGGER.debug("Searching for structure " + sf.getName() + " around " + from.toShortString() + " in a 1000 block radius...");
             BlockPos pos = world.locateStructure(sf, from, 1000, false);
             while (pos == null) {
-
-                sf = TagKey.of(Registry.CONFIGURED_STRUCTURE_FEATURE_KEY,Identifier.tryParse(VALID_IDS.get(random.nextInt(VALID_IDS.size()))));
+                LOGGER.debug("Structure " + sf.getName() + " not found! Generating a new one...");
+                sf = Registry.STRUCTURE_FEATURE.get(Identifier.tryParse(VALID_IDS.get(world.random.nextInt(VALID_IDS.size()))));
+                LOGGER.debug("Searching for structure " + sf.getName() + " instead...");
                 pos = world.locateStructure(sf, from, 1000, false);
             }
-
+            LOGGER.debug("Structure " + sf.getName() + " found!");
             ItemStack itemStack = FilledMapItem.createMap(world, pos.getX(), pos.getZ(), (byte) 2, true, true);
             LOGGER.debug("ItemStack created!");
             new Thread(() -> {  //we have to do this really nasty thing because it can lag very bad
@@ -59,10 +54,14 @@ public class EM4ES implements ModInitializer {
             addDecorationsNbt(itemStack, pos, "+", sf.hashCode());
             LOGGER.debug("ItemStack Decorated!");
 
-            itemStack.setCustomName(new LiteralText(formatName(sf.id().getPath()) + " Map"));
+            itemStack.setCustomName(new LiteralText(formatName(sf.getName()) + " Map"));
             LOGGER.debug("ItemStack renamed!");
             return itemStack;
         });
+    }
+
+    private static int color(int r, int g, int b) {
+        return r << (byte) 16 + g << (byte) 8 + b;
     }
 
     public static void addDecorationsNbt(ItemStack stack, BlockPos pos, String id, int randomIn) {
@@ -82,7 +81,7 @@ public class EM4ES implements ModInitializer {
         nbtList.add(nbtCompound);
         NbtCompound nbtCompound2 = stack.getOrCreateSubNbt("display");
         Random random = new Random(randomIn);
-        nbtCompound2.putInt("MapColor", new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)).getRGB());
+        nbtCompound2.putInt("MapColor", color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
 
     }
 
